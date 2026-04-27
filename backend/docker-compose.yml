@@ -1,0 +1,31 @@
+services:
+  backend:
+    container_name: fullstack-typescript-opencode-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9001:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@database:5432/backend?schema=public
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    container_name: fullstack-typescript-opencode-database
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: backend
+    ports:
+      - "9002:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

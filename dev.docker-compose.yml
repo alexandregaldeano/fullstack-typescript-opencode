@@ -1,0 +1,75 @@
+services:
+  frontend:
+    container_name: fullstack-typescript-opencode-frontend-dev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    working_dir: /app
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    ports:
+      - "9090:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/index.html:/app/index.html
+      - frontend-node-modules:/app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:9091
+    networks:
+      - dev-network
+
+  backend:
+    container_name: fullstack-typescript-opencode-backend-dev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "9091:3000"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+      - ./backend/tsconfig.json:/app/tsconfig.json
+      - ./backend/prisma:/app/prisma
+      - ./backend/.env:/app/.env
+      - backend-node-modules:/app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@database-dev:5432/backend_dev?schema=public
+    depends_on:
+      database-dev:
+        condition: service_healthy
+    networks:
+      - dev-network
+
+  database-dev:
+    container_name: fullstack-typescript-opencode-db-dev
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: backend_dev
+    ports:
+      - "9092:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev-network
+
+volumes:
+  frontend-node-modules:
+  backend-node-modules:
+  postgres-dev-data:
+
+networks:
+  dev-network:
+    driver: bridge

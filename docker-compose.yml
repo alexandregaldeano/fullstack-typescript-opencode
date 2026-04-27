@@ -1,0 +1,12 @@
+services: {}
+
+include:
+  - ./backend/docker-compose.yml
+  - ./frontend/docker-compose.yml
+
+volumes:
+  postgres-data:
+
+networks:
+  app-network:
+    driver: bridge

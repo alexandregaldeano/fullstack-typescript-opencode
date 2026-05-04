@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 
+import { env } from './env';
 import { prisma } from './prisma';
 
 export function createApp(): Application {
@@ -13,7 +14,7 @@ export function createApp(): Application {
   app.use(helmet());
 
   app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: env.CORS_ORIGIN,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }));

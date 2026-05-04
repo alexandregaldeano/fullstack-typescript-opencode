@@ -104,7 +104,14 @@ yarn test:run --coverage # Run tests with coverage report
 
 ### Git Hooks
 
-Both projects use Husky and lint-staged for pre-commit hooks. Before committing:
+Both projects use Husky and lint-staged for pre-commit hooks. After cloning, run:
+
+```bash
+yarn install
+```
+
+This automatically configures the Git hooks path. Before committing:
+- Commit message is validated against conventional commits format
 - ESLint runs on staged files
 - TypeScript type checking runs on staged files
 

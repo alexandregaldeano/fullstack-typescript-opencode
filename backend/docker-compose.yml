@@ -4,10 +4,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "9001:3000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@database:5432/backend?schema=public
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@database:5432/backend?schema=public}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
     depends_on:
       database:
         condition: service_healthy

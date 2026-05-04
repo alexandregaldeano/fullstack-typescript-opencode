@@ -28,8 +28,6 @@
     "zod": "^4.4.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.3",
-    "@commitlint/config-conventional": "^20.5.3",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/express-rate-limit": "^6.0.2",

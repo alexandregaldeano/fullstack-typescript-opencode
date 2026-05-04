@@ -1,0 +1,6 @@
+#!/bin/sh
+# Git commit message linting using commitlint
+# Ensures commit messages follow conventional commits format
+
+# Run commitlint from the backend directory
+npx --prefix backend --no -- commitlint --edit "$1" --config backend/commitlint.config.js

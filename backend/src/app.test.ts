@@ -6,7 +6,7 @@ import * as prismaModule from './prisma';
 
 vi.mock('./prisma', () => ({
   prisma: {
-    $connect: vi.fn(),
+    $queryRaw: vi.fn(),
   },
 }));
 
@@ -24,11 +24,21 @@ describe('createApp', () => {
     expect(app).toBeDefined();
   });
 
-  it('should respond with 200 and health status when prisma connects', async () => {
-    vi.mocked(prismaModule.prisma.$connect).mockResolvedValueOnce(undefined);
-
+  it('should respond with 200 and health status on /health', async () => {
     const app = createApp();
     const response = await request(app).get('/health');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      status: 'ok',
+    });
+  });
+
+  it('should respond with 200 and database connected on /api/health', async () => {
+    vi.mocked(prismaModule.prisma.$queryRaw).mockResolvedValueOnce([{ '1': 1 }]);
+
+    const app = createApp();
+    const response = await request(app).get('/api/health');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -37,11 +47,11 @@ describe('createApp', () => {
     });
   });
 
-  it('should respond with 500 and error status when prisma fails', async () => {
-    vi.mocked(prismaModule.prisma.$connect).mockRejectedValueOnce(new Error('DB connection failed'));
+  it('should respond with 500 and error on /api/health when prisma fails', async () => {
+    vi.mocked(prismaModule.prisma.$queryRaw).mockRejectedValueOnce(new Error('DB connection failed'));
 
     const app = createApp();
-    const response = await request(app).get('/health');
+    const response = await request(app).get('/api/health');
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
@@ -49,5 +59,16 @@ describe('createApp', () => {
       database: 'disconnected',
       error: 'Error: DB connection failed',
     });
+  });
+
+  it('should respond with 500 for thrown errors', async () => {
+    const app = createApp();
+    app.get('/throw', () => {
+      throw new Error('Test error');
+    });
+
+    const response = await request(app).get('/throw');
+
+    expect(response.status).toBe(500);
   });
 });

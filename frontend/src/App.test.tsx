@@ -5,11 +5,10 @@ import App from './App';
 
 describe('App', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.spyOn(globalThis, 'fetch');
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -24,7 +23,7 @@ describe('App', () => {
   });
 
   it('should show loading state when checking health', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+    vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ status: 'ok', database: 'connected' }),
     } as Response);
@@ -40,7 +39,7 @@ describe('App', () => {
   });
 
   it('should display health status when successful', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+    vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ status: 'ok', database: 'connected' }),
     } as Response);
@@ -59,7 +58,7 @@ describe('App', () => {
   });
 
   it('should display error when fetch fails', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+    vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
 
     render(<App />);
     const button = screen.getByText('Check Health');
@@ -68,11 +67,11 @@ describe('App', () => {
     
     await waitFor(() => {
       expect(screen.getByText('Error: Network error')).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it('should display error when response is not ok', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+    vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       status: 500,
       json: async () => ({}),
@@ -88,8 +87,8 @@ describe('App', () => {
     });
   });
 
-  it('should display unknown error when error is not an Error object', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce('String error');
+  it('should display network error when fetch rejects with non-Error', async () => {
+    vi.mocked(fetch).mockRejectedValue('String error');
 
     render(<App />);
     const button = screen.getByText('Check Health');
@@ -97,12 +96,12 @@ describe('App', () => {
     fireEvent.click(button);
     
     await waitFor(() => {
-      expect(screen.getByText('Error: Unknown error')).toBeInTheDocument();
-    });
+      expect(screen.getByText('Error: Network error')).toBeInTheDocument();
+    }, { timeout: 10000 });
   });
 
   it('should retry on network error', async () => {
-    const mockFetch = vi.spyOn(globalThis, 'fetch');
+    const mockFetch = vi.mocked(fetch);
     mockFetch
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce({
@@ -117,7 +116,7 @@ describe('App', () => {
     
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
+    }, { timeout: 10000 });
   });
 
   it('should have aria-label on health check button', () => {

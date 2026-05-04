@@ -140,4 +140,40 @@ describe('index', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith('Unhandled Rejection:', testReason);
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
+
+  it('should return server from getServer', async () => {
+    const listenCallback = vi.fn();
+    appMock.listen.mockImplementation((_port: number, callback: () => void) => {
+      listenCallback();
+      callback();
+      return appMock;
+    });
+
+    await import('./index');
+
+    const { getServer } = await import('./index');
+    const retrievedServer = getServer();
+    expect(retrievedServer).toBe(appMock);
+  });
+
+  it('should force shutdown after timeout', async () => {
+    vi.useFakeTimers();
+
+    const { gracefulShutdown } = await import('./index');
+
+    appMock.close.mockImplementation((cb: () => void) => {
+      cb();
+    });
+
+    const shutdownPromise = gracefulShutdown('SIGTERM');
+
+    await shutdownPromise;
+
+    await vi.advanceTimersByTimeAsync(10001);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Forced shutdown after 10 seconds.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    vi.useRealTimers();
+  });
 });

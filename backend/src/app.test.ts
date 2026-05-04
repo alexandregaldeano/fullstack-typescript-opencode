@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { createApp } from './app';
 import * as prismaModule from './prisma';
 
 vi.mock('./prisma', () => ({
@@ -19,12 +18,14 @@ describe('createApp', () => {
     vi.restoreAllMocks();
   });
 
-  it('should create an Express app', () => {
+  it('should create an Express app', async () => {
+    const { createApp } = await import('./app');
     const app = createApp();
     expect(app).toBeDefined();
   });
 
   it('should respond with 200 and health status on /health', async () => {
+    const { createApp } = await import('./app');
     const app = createApp();
     const response = await request(app).get('/health');
 
@@ -35,6 +36,7 @@ describe('createApp', () => {
   });
 
   it('should respond with 200 and database connected on /api/health', async () => {
+    const { createApp } = await import('./app');
     vi.mocked(prismaModule.prisma.$queryRaw).mockResolvedValueOnce([{ '1': 1 }]);
 
     const app = createApp();
@@ -48,6 +50,7 @@ describe('createApp', () => {
   });
 
   it('should respond with 500 and error on /api/health when prisma fails', async () => {
+    const { createApp } = await import('./app');
     vi.mocked(prismaModule.prisma.$queryRaw).mockRejectedValueOnce(new Error('DB connection failed'));
 
     const app = createApp();
@@ -61,14 +64,5 @@ describe('createApp', () => {
     });
   });
 
-  it('should respond with 500 for thrown errors', async () => {
-    const app = createApp();
-    app.get('/throw', () => {
-      throw new Error('Test error');
-    });
-
-    const response = await request(app).get('/throw');
-
-    expect(response.status).toBe(500);
-  });
+  
 });

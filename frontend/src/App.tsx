@@ -37,7 +37,7 @@ function HealthCheck() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchWithRetry(`${API_BASE_URL}/api/health`);
+      const res = await fetchWithRetry(`${API_BASE_URL}/health`);
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
@@ -83,3 +83,4 @@ function App() {
 }
 
 export default App;
+// test

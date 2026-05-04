@@ -4,8 +4,7 @@
   "scripts": {
     "husky:setup": "git config core.hooksPath .husky"
   },
-  "workspaces": [
-    "backend",
-    "frontend"
-  ]
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
 }

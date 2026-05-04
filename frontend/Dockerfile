@@ -10,12 +10,14 @@ COPY . .
 
 RUN yarn build
 
-FROM nginx:alpine
+FROM node:24-alpine
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist ./dist
+
+RUN npm install -g serve
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["serve", "dist", "-s", "-l", "80"]

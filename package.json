@@ -1,0 +1,11 @@
+{
+  "name": "fullstack-typescript-opencode",
+  "private": true,
+  "scripts": {
+    "husky:setup": "git config core.hooksPath .husky"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}

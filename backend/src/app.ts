@@ -1,12 +1,11 @@
+import cors from 'cors';
 import type { Application } from 'express';
 import express from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 
 import { prisma } from './prisma';
-import { env } from './env';
 
 export function createApp(): Application {
   const app = express();
@@ -45,7 +44,7 @@ export function createApp(): Application {
     }
   });
 
-  app.use((err: Error, _req: import('express').Request, res: import('express').Response, _next: import('express').NextFunction) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Internal Server Error' });
   });

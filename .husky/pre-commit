@@ -1,0 +1,3 @@
+#!/bin/sh
+npx --prefix backend --no -- lint-staged --cwd backend
+npx --prefix frontend --no -- lint-staged --cwd frontend

@@ -8,7 +8,7 @@ In an actual project, the `backend` and `frontend` subfolders would have their o
 
 ## Prerequisites
 
-- Node.js 18 or higher
+- Node.js 24 or higher
 - Docker and Docker Compose
 - Yarn package manager
 

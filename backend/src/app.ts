@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 
 import { env } from './env';
+import { errorHandler } from './error-handler';
 import { prisma } from './prisma';
 
 export function createApp(): Application {
@@ -45,10 +46,7 @@ export function createApp(): Application {
     }
   });
 
-  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Internal Server Error' });
-  });
+  app.use(errorHandler);
 
   return app;
 }

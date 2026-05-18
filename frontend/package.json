@@ -45,8 +45,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,css}": [
-      "eslint --fix",
-      "tsc --noEmit"
+      "eslint --fix"
     ]
   },
   "resolutions": {

@@ -44,7 +44,7 @@ function HealthCheck() {
       const data = await res.json();
       setHealth(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }

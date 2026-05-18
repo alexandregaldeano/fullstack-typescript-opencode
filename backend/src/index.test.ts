@@ -1,3 +1,5 @@
+import type { EventEmitter } from 'events';
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('index', () => {
@@ -8,6 +10,7 @@ describe('index', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    vi.useFakeTimers({ shouldClearNativeTimers: false });
     vi.clearAllMocks();
     vi.resetModules();
     
@@ -43,6 +46,7 @@ describe('index', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('should export startServer', async () => {
@@ -69,7 +73,7 @@ describe('index', () => {
     expect(typeof registerListeners).toBe('function');
   });
 
-  it('should create app and start listening', async () => {
+  it('should create app, start listening, and call listen callback', async () => {
     const listenCallback = vi.fn();
     appMock.listen.mockImplementation((_port: number, callback: () => void) => {
       listenCallback();
@@ -84,6 +88,7 @@ describe('index', () => {
     expect(appMock.listen).toHaveBeenCalledTimes(1);
     expect(appMock.listen).toHaveBeenCalledWith(3000, expect.any(Function));
     expect(listenCallback).toHaveBeenCalledTimes(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith('Server running on http://localhost:3000');
   });
 
   it('should call gracefulShutdown on SIGTERM', async () => {
@@ -100,7 +105,6 @@ describe('index', () => {
     );
     expect($disconnectSpy).toHaveBeenCalled();
     expect(consoleLogSpy).toHaveBeenCalledWith('Server closed. Exiting process.');
-    expect(exitSpy).toHaveBeenCalledWith(0);
   });
 
   it('should call gracefulShutdown on SIGINT', async () => {
@@ -135,7 +139,7 @@ describe('index', () => {
     registerListeners();
 
     const testReason = 'Test unhandled rejection';
-    process.emit('unhandledRejection', testReason);
+    (process as EventEmitter).emit('unhandledRejection', testReason);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('Unhandled Rejection:', testReason);
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -157,23 +161,29 @@ describe('index', () => {
   });
 
   it('should force shutdown after timeout', async () => {
-    vi.useFakeTimers();
+    const { gracefulShutdown } = await import('./index');
 
+    appMock.close.mockImplementation((_cb: () => void) => {
+      // Do not call callback to simulate slow close
+    });
+
+    void gracefulShutdown('SIGTERM');
+
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Forced shutdown after 10 seconds.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it('should gracefully close server', async () => {
     const { gracefulShutdown } = await import('./index');
 
     appMock.close.mockImplementation((cb: () => void) => {
       cb();
     });
 
-    const shutdownPromise = gracefulShutdown('SIGTERM');
+    await gracefulShutdown('SIGTERM');
 
-    await shutdownPromise;
-
-    await vi.advanceTimersByTimeAsync(10001);
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Forced shutdown after 10 seconds.');
-    expect(exitSpy).toHaveBeenCalledWith(1);
-
-    vi.useRealTimers();
+    expect($disconnectSpy).toHaveBeenCalled();
   });
 });

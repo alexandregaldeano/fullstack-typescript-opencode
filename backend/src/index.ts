@@ -22,19 +22,19 @@ export function getServer(): Server | undefined {
 export const gracefulShutdown = async (signal: string): Promise<void> => {
   console.log(`\n${signal} received. Shutting down gracefully...`);
 
-  await new Promise<void>((resolve) => {
-    server?.close(async () => {
-      await prisma.$disconnect();
-      console.log('Server closed. Exiting process.');
-      process.exit(0);
-      resolve();
-    });
-  });
-
-  setTimeout(() => {
+  const timer = setTimeout(() => {
     console.error('Forced shutdown after 10 seconds.');
     process.exit(1);
   }, 10000);
+
+  await new Promise<void>((resolve) => {
+    server?.close(async () => {
+      clearTimeout(timer);
+      await prisma.$disconnect();
+      console.log('Server closed. Exiting process.');
+      resolve();
+    });
+  });
 };
 
 export function registerListeners(): void {

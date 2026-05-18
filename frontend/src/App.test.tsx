@@ -57,6 +57,23 @@ describe('App', () => {
     });
   });
 
+  it('should display error on 400 response', async () => {
+    vi.mocked(fetch).mockReturnValue({
+      ok: false,
+      status: 400,
+      json: async () => ({}),
+    } as unknown as Response);
+
+    render(<App />);
+    const button = screen.getByText('Check Health');
+
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('Error: HTTP 400')).toBeInTheDocument();
+    });
+  });
+
   it('should display error when fetch fails', async () => {
     vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
 

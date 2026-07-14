@@ -2,6 +2,7 @@ import type { Server } from 'http';
 
 import { createApp } from './app';
 import { env } from './env';
+import { logger } from './logger';
 import { prisma } from './prisma';
 
 const app = createApp();
@@ -10,7 +11,7 @@ let server: Server;
 
 export function startServer(): Server {
   server = app.listen(env.PORT, () => {
-    console.log(`Server running on http://localhost:${env.PORT}`);
+    logger.info({ port: env.PORT }, 'Server running');
   });
   return server;
 }
@@ -20,10 +21,10 @@ export function getServer(): Server | undefined {
 }
 
 export const gracefulShutdown = async (signal: string): Promise<void> => {
-  console.log(`\n${signal} received. Shutting down gracefully...`);
+  logger.info({ signal }, 'Shutting down gracefully');
 
   const timer = setTimeout(() => {
-    console.error('Forced shutdown after 10 seconds.');
+    logger.warn({ timeoutSeconds: 10 }, 'Forced shutdown after 10 seconds');
     process.exit(1);
   }, 10000);
 
@@ -31,7 +32,7 @@ export const gracefulShutdown = async (signal: string): Promise<void> => {
     server?.close(async () => {
       clearTimeout(timer);
       await prisma.$disconnect();
-      console.log('Server closed. Exiting process.');
+      logger.info('Server closed');
       resolve();
     });
   });
@@ -42,12 +43,12 @@ export function registerListeners(): void {
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
   process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
+    logger.error({ err }, 'Uncaught Exception');
     process.exit(1);
   });
 
   process.on('unhandledRejection', (reason) => {
-    console.error('Unhandled Rejection:', reason);
+    logger.error({ reason }, 'Unhandled Rejection');
     process.exit(1);
   });
 }

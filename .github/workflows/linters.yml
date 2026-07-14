@@ -39,9 +39,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: yarn
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Run commitlint
         run: npx --no -- commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --config commitlint.config.js
@@ -58,15 +59,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: yarn
 
       - name: Install dependencies
-        run: cd backend && yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Run ESLint
-        run: cd backend && yarn lint
+        run: yarn lint:backend
 
       - name: Run TypeScript check
-        run: cd backend && yarn typecheck
+        run: yarn typecheck:backend
 
   frontend-lint:
     name: Frontend Lint
@@ -80,12 +82,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: yarn
 
       - name: Install dependencies
-        run: cd frontend && yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Run ESLint
-        run: cd frontend && yarn lint
+        run: yarn lint:frontend
 
       - name: Run TypeScript check
-        run: cd frontend && yarn typecheck
+        run: yarn typecheck:frontend
+
+  translation-lint:
+    name: Translation Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check translations
+        run: yarn lint:translations

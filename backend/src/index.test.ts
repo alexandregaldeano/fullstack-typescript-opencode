@@ -6,42 +6,57 @@ describe('index', () => {
   let appMock: { listen: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn> };
   let $disconnectSpy: ReturnType<typeof vi.fn>;
   let exitSpy: ReturnType<typeof vi.fn>;
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let loggerInfoSpy: ReturnType<typeof vi.fn>;
+  let loggerErrorSpy: ReturnType<typeof vi.fn>;
+  let loggerWarnSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.useFakeTimers({ shouldClearNativeTimers: false });
     vi.clearAllMocks();
     vi.resetModules();
-    
+
     appMock = {
       listen: vi.fn().mockReturnThis(),
       close: vi.fn(),
     };
     $disconnectSpy = vi.fn().mockResolvedValue(undefined);
-    
+    loggerInfoSpy = vi.fn();
+    loggerErrorSpy = vi.fn();
+    loggerWarnSpy = vi.fn();
+
     vi.doMock('./app', () => ({
       createApp: vi.fn(() => appMock),
     }));
-    
+
     vi.doMock('./prisma', () => ({
       prisma: {
         $disconnect: $disconnectSpy,
       },
     }));
-    
+
     vi.doMock('./env', () => ({
       env: { PORT: 3000 },
     }));
-    
+
+    vi.doMock('./logger', () => ({
+      logger: {
+        info: loggerInfoSpy,
+        error: loggerErrorSpy,
+        warn: loggerWarnSpy,
+      },
+      createChildLogger: vi.fn(() => ({
+        info: loggerInfoSpy,
+        error: loggerErrorSpy,
+        warn: loggerWarnSpy,
+      })),
+    }));
+
     exitSpy = vi.fn();
     Object.defineProperty(process, 'exit', {
       value: exitSpy,
       writable: true,
       configurable: true,
     });
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => void 0);
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => void 0);
   });
 
   afterEach(() => {
@@ -88,37 +103,36 @@ describe('index', () => {
     expect(appMock.listen).toHaveBeenCalledTimes(1);
     expect(appMock.listen).toHaveBeenCalledWith(3000, expect.any(Function));
     expect(listenCallback).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith('Server running on http://localhost:3000');
+    expect(loggerInfoSpy).toHaveBeenCalledWith({ port: 3000 }, 'Server running');
   });
 
-  it('should call gracefulShutdown on SIGTERM', async () => {
-    const { gracefulShutdown } = await import('./index');
+  it('should call gracefulShutdown on SIGTERM via registerListeners', async () => {
+    const { registerListeners } = await import('./index');
 
     appMock.close.mockImplementation((cb: () => void) => {
       cb();
     });
 
-    await gracefulShutdown('SIGTERM');
+    registerListeners();
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '\nSIGTERM received. Shutting down gracefully...'
-    );
+    (process as EventEmitter).emit('SIGTERM');
+
+    expect(loggerInfoSpy).toHaveBeenCalledWith({ signal: 'SIGTERM' }, 'Shutting down gracefully');
     expect($disconnectSpy).toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith('Server closed. Exiting process.');
   });
 
-  it('should call gracefulShutdown on SIGINT', async () => {
-    const { gracefulShutdown } = await import('./index');
+  it('should call gracefulShutdown on SIGINT via registerListeners', async () => {
+    const { registerListeners } = await import('./index');
 
     appMock.close.mockImplementation((cb: () => void) => {
       cb();
     });
 
-    await gracefulShutdown('SIGINT');
+    registerListeners();
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '\nSIGINT received. Shutting down gracefully...'
-    );
+    (process as EventEmitter).emit('SIGINT');
+
+    expect(loggerInfoSpy).toHaveBeenCalledWith({ signal: 'SIGINT' }, 'Shutting down gracefully');
   });
 
   it('should handle uncaughtException', async () => {
@@ -129,7 +143,7 @@ describe('index', () => {
     const testError = new Error('Test uncaught exception');
     process.emit('uncaughtException', testError);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Uncaught Exception:', testError);
+    expect(loggerErrorSpy).toHaveBeenCalledWith({ err: testError }, 'Uncaught Exception');
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -141,7 +155,7 @@ describe('index', () => {
     const testReason = 'Test unhandled rejection';
     (process as EventEmitter).emit('unhandledRejection', testReason);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Unhandled Rejection:', testReason);
+    expect(loggerErrorSpy).toHaveBeenCalledWith({ reason: testReason }, 'Unhandled Rejection');
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -171,7 +185,7 @@ describe('index', () => {
 
     await vi.advanceTimersByTimeAsync(10000);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Forced shutdown after 10 seconds.');
+    expect(loggerWarnSpy).toHaveBeenCalledWith({ timeoutSeconds: 10 }, 'Forced shutdown after 10 seconds');
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
 

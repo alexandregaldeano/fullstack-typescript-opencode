@@ -1,6 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import type { HealthErrorResponse, HealthResponse, SimpleHealthResponse } from '@fullstack/shared';
 import cors from 'cors';
 import type { Application } from 'express';
 import express from 'express';
@@ -10,7 +11,6 @@ import pinoHttp from 'pino-http';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-import type { HealthErrorResponse, HealthResponse, SimpleHealthResponse } from '@shared/interfaces';
 
 import { env } from './env';
 import { errorHandler } from './error-handler';

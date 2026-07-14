@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "ES2022",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -17,7 +16,8 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@fullstack/shared": ["../shared/src"],
+      "@fullstack/shared/*": ["../shared/src/*"]
     },
     "types": ["vitest"]
   },

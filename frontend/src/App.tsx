@@ -1,6 +1,6 @@
 import { useState, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import type { HealthResponse } from "@shared/interfaces";
+import type { HealthResponse } from "@fullstack/shared";
 import { API_BASE_URL } from "./constants";
 
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3, t: (key: string, options?: Record<string, unknown>) => string): Promise<Response> {
@@ -42,7 +42,7 @@ function HealthCheck() {
       const data = await res.json();
       setHealth(data);
     } catch (err) {
-      setError(`${t("health.errorPrefix")} ${err instanceof Error ? err.message : String(err)}`);
+      setError(`${t("health.errorPrefix")} ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }

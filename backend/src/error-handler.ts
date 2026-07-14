@@ -1,6 +1,6 @@
+import type { ApiError } from '@fullstack/shared';
 import type { ErrorRequestHandler } from 'express';
 
-import type { ApiError } from '@shared/interfaces';
 
 import { logger } from './logger';
 

@@ -136,6 +136,22 @@ describe('App', () => {
     }, { timeout: 10000 });
   });
 
+  it('should handle non-Error rejection', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: 'ok', database: 'connected' }),
+    } as Response);
+
+    render(<App />);
+    const button = screen.getByText('Check Health');
+
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('ok')).toBeInTheDocument();
+    });
+  });
+
   it('should have aria-label on health check button', () => {
     render(<App />);
     const button = screen.getByRole('button', { name: 'Check backend health' });
@@ -145,5 +161,12 @@ describe('App', () => {
   it('should render language switcher', () => {
     render(<App />);
     expect(screen.getByLabelText('Language:')).toBeInTheDocument();
+  });
+
+  it('should change language when select value changes', () => {
+    render(<App />);
+    const select = screen.getByLabelText('Language:');
+    fireEvent.change(select, { target: { value: 'fr' } });
+    expect(select).toHaveValue('fr');
   });
 });

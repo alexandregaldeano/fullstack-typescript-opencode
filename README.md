@@ -2,9 +2,7 @@
 
 A fullstack TypeScript application with an Express backend and React frontend, containerized with Docker.
 
-This is a test to see what OpenCode with a local Qwen 3.6 35B A3B is capable of under my supervision.
-
-In an actual project, the `backend` and `frontend` subfolders would have their own Git repository.
+This is a test to see what OpenCode with a local Qwen 3.6 35B A3B and Qwen 3.6 27B are capable of under my supervision.
 
 ## Prerequisites
 

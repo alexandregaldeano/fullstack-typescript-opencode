@@ -1,3 +1,2 @@
 #!/bin/sh
-(cd backend && yarn lint-staged)
-(cd frontend && yarn lint-staged)
+yarn lint-staged

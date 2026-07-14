@@ -30,9 +30,9 @@ describe('App', () => {
 
     render(<App />);
     const button = screen.getByText('Check Health');
-    
+
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Checking...')).toBeInTheDocument();
     });
@@ -46,9 +46,9 @@ describe('App', () => {
 
     render(<App />);
     const button = screen.getByText('Check Health');
-    
+
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Status:')).toBeInTheDocument();
       expect(screen.getByText('Database:')).toBeInTheDocument();
@@ -79,9 +79,9 @@ describe('App', () => {
 
     render(<App />);
     const button = screen.getByText('Check Health');
-    
+
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Error: Network error')).toBeInTheDocument();
     }, { timeout: 10000 });
@@ -96,9 +96,9 @@ describe('App', () => {
 
     render(<App />);
     const button = screen.getByText('Check Health');
-    
+
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Error: HTTP 500')).toBeInTheDocument();
     });
@@ -109,9 +109,9 @@ describe('App', () => {
 
     render(<App />);
     const button = screen.getByText('Check Health');
-    
+
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Error: Network error')).toBeInTheDocument();
     }, { timeout: 10000 });
@@ -128,9 +128,9 @@ describe('App', () => {
 
     render(<App />);
     const button = screen.getByText('Check Health');
-    
+
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(2);
     }, { timeout: 10000 });
@@ -138,7 +138,12 @@ describe('App', () => {
 
   it('should have aria-label on health check button', () => {
     render(<App />);
-    const button = screen.getByRole('button');
+    const button = screen.getByRole('button', { name: 'Check backend health' });
     expect(button).toHaveAttribute('aria-label', 'Check backend health');
+  });
+
+  it('should render language switcher', () => {
+    render(<App />);
+    expect(screen.getByLabelText('Language:')).toBeInTheDocument();
   });
 });
